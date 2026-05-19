@@ -61,7 +61,7 @@
             line-height: 1;
         }
 
-        /* Area Tombol Pilihan */
+        /* Area Tombol Pilihan (Tata Letak Kolom untuk Potret) */
         .actions {
             display: flex;
             flex-direction: column;
@@ -142,6 +142,32 @@
             z-index: 50;
             cursor: pointer;
         }
+
+        /* --- CSS TAMBAHAN UNTUK RESPONSIVITAS --- */
+
+        /* Menangani Tata Letak di Lanskap */
+        @media (orientation: landscape) {
+            .actions {
+                flex-direction: row; /* Ikon berjejer horizontal di lanskap */
+                gap: 20px; /* Jarak horizontal yang lebih besar agar bagus */
+                justify-content: center; /* Pusatkan ikon */
+            }
+
+            /* Opsional: Ubah penyelarasan elemen side untuk lanskap agar tidak terlalu renggang vertikal */
+            .side {
+                justify-content: space-around; /* Lebih seimbang secara vertikal */
+            }
+        }
+
+        /* Menangani perangkat layar besar (opsional, untuk memastikan horizontal di tablet lanskap) */
+        @media (min-width: 800px) {
+             .actions {
+                flex-direction: row; /* Ikon berjejer horizontal di layar lebar */
+                gap: 20px;
+                justify-content: center;
+            }
+        }
+
     </style>
 </head>
 <body>
