@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta tag ini sangat penting agar tampilan pas di HP dan tidak ikut ter-zoom saat di-tap cepat -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Papan Skor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            /* Mencegah zoom saat double tap di HP */
+            touch-action: manipulation;
+            overflow: hidden; 
+            background-color: #222;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh; /* Mengisi penuh tinggi layar */
+            width: 100vw;  /* Mengisi penuh lebar layar */
+        }
+
+        .side {
+            flex: 1; /* Membagi layar 50:50 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            
+            /* Mencegah teks ter-highlight/terblok saat di-tap cepat di HP */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Warna untuk masing-masing sisi */
+        .left {
+            background-color: #e74c3c; /* Merah */
+            color: white;
+        }
+
+        .right {
+            background-color: #3498db; /* Biru */
+            color: white;
+        }
+
+        .team-name {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+
+        .score {
+            font-size: 8rem; /* Ukuran angka sangat besar */
+            font-weight: bold;
+        }
+
+        /* Tombol reset mengambang di bawah tengah */
+        .reset-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .reset-btn:active {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Area Kiri -->
+        <div class="side left" id="leftSide">
+            <h2 class="team-name">KIRI</h2>
+            <div class="score" id="scoreLeft">0</div>
+        </div>
+
+        <!-- Area Kanan -->
+        <div class="side right" id="rightSide">
+            <h2 class="team-name">KANAN</h2>
+            <div class="score" id="scoreRight">0</div>
+        </div>
+    </div>
+
+    <!-- Tombol Reset -->
+    <button id="resetBtn" class="reset-btn">Reset Skor</button>
+
+    <script>
+        // Variabel untuk menyimpan skor
+        let leftScore = 0;
+        let rightScore = 0;
+
+        // Mengambil elemen dari HTML
+        const leftSide = document.getElementById('leftSide');
+        const rightSide = document.getElementById('rightSide');
+        const scoreLeftEl = document.getElementById('scoreLeft');
+        const scoreRightEl = document.getElementById('scoreRight');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Event listener saat sisi kiri diklik/ditap
+        leftSide.addEventListener('click', () => {
+            leftScore++;
+            scoreLeftEl.textContent = leftScore;
+        });
+
+        // Event listener saat sisi kanan diklik/ditap
+        rightSide.addEventListener('click', () => {
+            rightScore++;
+            scoreRightEl.textContent = rightScore;
+        });
+
+        // Event listener untuk tombol reset
+        resetBtn.addEventListener('click', (event) => {
+            // Mencegah klik tombol reset agar tidak terhitung sebagai klik pada layar belakangnya
+            event.stopPropagation(); 
+            
+            // Kembalikan skor ke 0
+            leftScore = 0;
+            rightScore = 0;
+            scoreLeftEl.textContent = leftScore;
+            scoreRightEl.textContent = rightScore;
+        });
+    </script>
+</body>
+</html>
