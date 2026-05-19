@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Papan Skor Pro</title>
+    <title>Papan Skor Multi-Pemain</title>
     <style>
         * {
             margin: 0;
@@ -12,28 +12,513 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             touch-action: manipulation;
-            overflow: hidden; 
-            background-color: #222;
+            background-color: #121212;
+            color: #ffffff;
+            overflow-x: hidden;
         }
 
-        .container {
-            display: flex;
-            height: 100vh;
+        /* --- LAYAR KESELURUHAN --- */
+        .screen {
+            display: none;
+            min-height: 100vh;
             width: 100vw;
+            padding: 20px;
         }
 
-        .side {
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 1. LAYAR SETUP --- */
+        #setup-screen {
+            justify-content: center;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00adb5;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #eee;
+        }
+
+        /* Ukuran font input 16px agar HP tidak otomatis melakukan auto-zoom */
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px; 
+            border-radius: 8px;
+            border: 2px solid #393e46;
+            background-color: #222831;
+            color: white;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #00adb5;
+        }
+
+        #name-inputs-container {
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background-color: #00adb5;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+
+        .btn:active {
+            background-color: #007a80;
+        }
+
+        /* --- 2. LAYAR PERMAINAN --- */
+        #game-screen {
+            padding: 0;
+            height: 100vh;
+        }
+
+        /* Bar Kontrol Atas */
+        .control-bar {
+            height: 60px;
+            background-color: #222831;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .target-info {
+            font-size: 0.9rem;
+            color: #eee;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .sub-btn {
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-reset { background-color: #e67e22; }
+        .btn-menu { background-color: #7f8c8d; }
+
+        /* Grid Area Pemain */
+        .players-grid {
             flex: 1;
+            display: grid;
+            gap: 5px;
+            padding: 5px;
+            background-color: #121212;
+            /* Otomatis membagi baris/kolom berdasarkan jumlah pemain */
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+
+        /* Kartu Pemain */
+        .player-card {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            border-radius: 8px;
+            position: relative;
             cursor: pointer;
             user-select: none;
             -webkit-user-select: none;
-            position: relative;
+            transition: transform 0.1s;
+            padding: 10px;
+        }
+
+        .player-card:active {
+            transform: scale(0.98);
+        }
+
+        .p-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            text-align: center;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .p-score {
+            font-size: 4.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            line-height: 1;
+        }
+
+        .p-minus {
+            margin-top: 10px;
+            padding: 6px 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* --- 3. LAYAR PEMENANG & RANKING --- */
+        #winner-screen {
+            justify-content: center;
+            align-items: center;
+            max-width: 450px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .congrats-box {
+            background-color: #222831;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #00adb5;
+            width: 100%;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .winner-title {
+            color: #f1c40f;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .leaderboard-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            text-align: left;
+            color: #bbb;
+            width: 100%;
+        }
+
+        .ranking-table {
+            width: 100%;
+            background-color: #1a1a1a;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .ranking-table tr {
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .ranking-table td {
+            padding: 12px 15px;
+            font-size: 1.1rem;
+        }
+
+        .rank-col { width: 15%; font-weight: bold; color: #00adb5; text-align: left;}
+        .name-col { width: 60%; text-align: left; }
+        .score-col { width: 25%; font-weight: bold; text-align: right; color: #f1c40f;}
+
+        .rank-2 { color: #e67e22; }
+        .rank-3 { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="screen active">
+        <h1>Papan Skor Pro</h1>
+        
+        <div class="form-group">
+            <label for="target-score">Target Skor Menang</label>
+            <input type="number" id="target-score" value="11" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="player-count">Jumlah Pemain</label>
+            <select id="player-count">
+                <option value="2">2 Pemain</option>
+                <option value="3">3 Pemain</option>
+                <option value="4">4 Pemain</option>
+                <option value="5">5 Pemain</option>
+                <option value="6">6 Pemain</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nama-Nama Pemain</label>
+            <div id="name-inputs-container">
+                </div>
+        </div>
+
+        <button id="btn-start" class="btn">Mulai Permainan</button>
+    </div>
+
+
+    <div id="game-screen" class="screen">
+        <div class="control-bar">
+            <button class="sub-btn btn-menu" id="control-menu">‹ Menu</button>
+            <div class="target-info" id="control-target">Target: 11</div>
+            <button class="sub-btn btn-reset" id="control-reset">Reset Skor</button>
+        </div>
+        <div class="players-grid" id="players-grid-container">
+            </div>
+    </div>
+
+
+    <div id="winner-screen" class="screen">
+        <div class="congrats-box">
+            <div class="winner-title">🏆 Kemenangan! 🏆</div>
+            <div class="winner-name" id="win-player-name">Pemain 1</div>
+            <p style="color: #aaa;">Selamat atas kemenangannya!</p>
+        </div>
+
+        <div class="leaderboard-title">📊 Urutan Ranking Akhir:</div>
+        <table class="ranking-table" id="ranking-table-body">
+            </table>
+
+        <button id="btn-restart" class="btn">Main Lagi</button>
+    </div>
+
+    <script>
+        // Pilihan Warna Menarik untuk Kartu Pemain
+        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22'];
+
+        // Data State Aplikasi
+        let players = [];
+        let targetScore = 11;
+
+        // Elemen DOM
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const winnerScreen = document.getElementById('winner-screen');
+        
+        const playerCountSelect = document.getElementById('player-count');
+        const nameInputsContainer = document.getElementById('name-inputs-container');
+        const btnStart = document.getElementById('btn-start');
+        
+        const controlTarget = document.getElementById('control-target');
+        const controlReset = document.getElementById('control-reset');
+        const controlMenu = document.getElementById('control-menu');
+        const playersGridContainer = document.getElementById('players-grid-container');
+        
+        const winPlayerName = document.getElementById('win-player-name');
+        const rankingTableBody = document.getElementById('ranking-table-body');
+        const btnRestart = document.getElementById('btn-restart');
+
+        // --- FUNGSI NAVIGASI LAYAR ---
+        function changeScreen(screenId) {
+            setupScreen.classList.remove('active');
+            gameScreen.classList.remove('active');
+            winnerScreen.classList.remove('active');
+            
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- LOGIK LAYAR SETUP ---
+        function generateNameInputs() {
+            const count = parseInt(playerCountSelect.value);
+            nameInputsContainer.innerHTML = '';
+            for (let i = 1; i <= count; i++) {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.style.marginBottom = '10px';
+                div.innerHTML = `<input type="text" class="player-name-input" data-index="${i}" value="Pemain ${i}" placeholder="Nama Pemain ${i}">`;
+                nameInputsContainer.appendChild(div);
+            }
+        }
+        
+        playerCountSelect.addEventListener('change', generateNameInputs);
+        // Jalankan sekali saat pertama kali aplikasi dibuka
+        generateNameInputs();
+
+        // Tombol Mulai Permainan Klik
+        btnStart.addEventListener('click', () => {
+            const targetInput = document.getElementById('target-score').value;
+            targetScore = parseInt(targetInput) || 11;
+            if(targetScore < 1) targetScore = 1;
+            
+            controlTarget.textContent = `Target: ${targetScore}`;
+            
+            const inputElements = document.querySelectorAll('.player-name-input');
+            players = [];
+            
+            inputElements.forEach((input, index) => {
+                players.push({
+                    id: index,
+                    name: input.value.trim() || `Pemain ${index + 1}`,
+                    score: 0,
+                    color: colors[index % colors.length]
+                });
+            });
+            
+            renderGameGrid();
+            changeScreen('game-screen');
+        });
+
+        // --- LOGIK LAYAR PERMAINAN ---
+        function renderGameGrid() {
+            playersGridContainer.innerHTML = '';
+            
+            // Atur gaya grid agar pas di layar HP berdasarkan jumlah pemain
+            const pCount = players.length;
+            if (pCount === 2) {
+                playersGridContainer.style.gridTemplateColumns = '1fr 1fr';
+            } else if (pCount === 3 || pCount === 4) {
+                playersGridContainer.style.gridTemplateColumns = '1fr 1fr';
+            } else {
+                playersGridContainer.style.gridTemplateColumns = '1fr 1fr';
+            }
+
+            players.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.style.backgroundColor = player.color;
+                card.setAttribute('data-id', player.id);
+                
+                card.innerHTML = `
+                    <div class="p-name">${player.name}</div>
+                    <div class="p-score" id="score-display-${player.id}">${player.score}</div>
+                    <button class="p-minus" data-id="${player.id}">- 1</button>
+                `;
+                
+                playersGridContainer.appendChild(card);
+            });
+        }
+
+        // Event Delegation untuk klik di area Grid Game (Sangat efektif di HP)
+        playersGridContainer.addEventListener('click', (event) => {
+            const target = event.target;
+            
+            // Kasus 1: Jika yang diklik adalah tombol minus (-1)
+            if (target.classList.contains('p-minus')) {
+                const id = parseInt(target.getAttribute('data-id'));
+                if (players[id].score > 0) {
+                    players[id].score--;
+                    document.getElementById(`score-display-${id}`).textContent = players[id].score;
+                }
+                return; // Berhenti agar tidak memicu tambah skor (+1)
+            }
+            
+            // Kasus 2: Jika yang diklik adalah area kartu (tambah skor)
+            const card = target.closest('.player-card');
+            if (card) {
+                const id = parseInt(card.getAttribute('data-id'));
+                players[id].score++;
+                document.getElementById(`score-display-${id}`).textContent = players[id].score;
+                
+                // Cek apakah pemain ini sudah menang
+                if (players[id].score >= targetScore) {
+                    setTimeout(() => {
+                        triggerWin(players[id]);
+                    }, 200); // Jeda sedikit agar angka skor berubah dulu di layar
+                }
+            }
+        });
+
+        // Tombol Reset Skor di Bar Atas
+        controlReset.addEventListener('click', () => {
+            if (confirm("Reset ulang semua skor ke 0?")) {
+                players.forEach(p => p.score = 0);
+                players.forEach(p => {
+                    const el = document.getElementById(`score-display-${p.id}`);
+                    if(el) el.textContent = 0;
+                });
+            }
+        });
+
+        // Tombol Kembali ke Menu Setup
+        controlMenu.addEventListener('click', () => {
+            if (confirm("Kembali ke pengaturan awal? Permainan saat ini akan dihapus.")) {
+                changeScreen('setup-screen');
+            }
+        });
+
+        // --- LOGIK LAYAR PEMENANG & RANKING ---
+        function triggerWin(winner) {
+            winPlayerName.textContent = winner.name;
+            
+            // Mengurutkan pemain dari skor tertinggi ke terendah (Ranking)
+            // Menggunakan slice() agar tidak merusak urutan asli array utama
+            const sortedPlayers = players.slice().sort((a, b) => b.score - a.score);
+            
+            rankingTableBody.innerHTML = '';
+            
+            sortedPlayers.forEach((player, index) => {
+                const tr = document.createElement('tr');
+                
+                let rankLabel = index + 1;
+                // Memberikan style warna menarik untuk peringkat 1, 2, 3
+                let rankClass = '';
+                if(index === 0) rankClass = 'style="color:#f1c40f;"';
+                if(index === 1) rankClass = 'class="rank-2"';
+                if(index === 2) rankClass = 'class="rank-3"';
+                
+                tr.innerHTML = `
+                    <td class="rank-col" ${rankClass}>#${rankLabel}</td>
+                    <td class="name-col">${player.name} ${index === 0 ? '👑' : ''}</td>
+                    <td class="score-col">${player.score} Poin</td>
+                `;
+                rankingTableBody.appendChild(tr);
+            });
+            
+            changeScreen('winner-screen');
+        }
+
+        // Tombol Main Lagi
+        btnRestart.addEventListener('click', () => {
+            // Balik ke setup agar bisa set ulang pemain atau langsung ganti nama
+            changeScreen('setup-screen');
+        });
+    </script>
+</body>
+</html>
         }
 
         .left { background-color: #e74c3c; color: white; }
