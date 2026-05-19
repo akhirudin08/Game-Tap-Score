@@ -2,9 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- Meta tag ini sangat penting agar tampilan pas di HP dan tidak ikut ter-zoom saat di-tap cepat -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Papan Skor</title>
+    <title>Papan Skor Pro</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +13,6 @@
 
         body {
             font-family: Arial, sans-serif;
-            /* Mencegah zoom saat double tap di HP */
             touch-action: manipulation;
             overflow: hidden; 
             background-color: #222;
@@ -22,18 +20,166 @@
 
         .container {
             display: flex;
-            height: 100vh; /* Mengisi penuh tinggi layar */
-            width: 100vw;  /* Mengisi penuh lebar layar */
+            height: 100vh;
+            width: 100vw;
         }
 
         .side {
-            flex: 1; /* Membagi layar 50:50 */
+            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+        }
+
+        .left { background-color: #e74c3c; color: white; }
+        .right { background-color: #3498db; color: white; }
+
+        /* Input untuk nama yang bisa diedit */
+        .team-name {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: bold;
+            width: 80%;
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.4);
+            padding-bottom: 5px;
+            outline: none;
+        }
+
+        .team-name:focus {
+            border-bottom: 2px solid white;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .score {
+            font-size: 8rem;
+            font-weight: bold;
+        }
+
+        /* Tombol kurangi skor */
+        .minus-btn {
+            margin-top: 15px;
+            padding: 8px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 20px;
+            background-color: rgba(0, 0, 0, 0.25);
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .minus-btn:active { background-color: rgba(0, 0, 0, 0.5); }
+
+        /* Tombol reset */
+        .reset-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+
+        .reset-btn:active { background-color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="side left" id="leftSide">
+            <input type="text" class="team-name" id="nameLeft" value="Pemain 1">
+            <div class="score" id="scoreLeft">0</div>
+            <button class="minus-btn" id="minusLeft">- 1</button>
+        </div>
+
+        <div class="side right" id="rightSide">
+            <input type="text" class="team-name" id="nameRight" value="Pemain 2">
+            <div class="score" id="scoreRight">0</div>
+            <button class="minus-btn" id="minusRight">- 1</button>
+        </div>
+    </div>
+
+    <button id="resetBtn" class="reset-btn">Reset Skor</button>
+
+    <script>
+        let leftScore = 0;
+        let rightScore = 0;
+
+        const leftSide = document.getElementById('leftSide');
+        const rightSide = document.getElementById('rightSide');
+        const scoreLeftEl = document.getElementById('scoreLeft');
+        const scoreRightEl = document.getElementById('scoreRight');
+        
+        const minusLeft = document.getElementById('minusLeft');
+        const minusRight = document.getElementById('minusRight');
+        const nameLeft = document.getElementById('nameLeft');
+        const nameRight = document.getElementById('nameRight');
+        
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Klik background untuk tambah skor
+        leftSide.addEventListener('click', () => {
+            leftScore++;
+            scoreLeftEl.textContent = leftScore;
+        });
+
+        rightSide.addEventListener('click', () => {
+            rightScore++;
+            scoreRightEl.textContent = rightScore;
+        });
+
+        // Tombol Kurang Kiri (-1)
+        minusLeft.addEventListener('click', (event) => {
+            event.stopPropagation(); // Cegah background ikut ke-klik
+            if(leftScore > 0) { // Skor tidak boleh minus
+                leftScore--;
+                scoreLeftEl.textContent = leftScore;
+            }
+        });
+
+        // Tombol Kurang Kanan (-1)
+        minusRight.addEventListener('click', (event) => {
+            event.stopPropagation(); // Cegah background ikut ke-klik
+            if(rightScore > 0) { // Skor tidak boleh minus
+                rightScore--;
+                scoreRightEl.textContent = rightScore;
+            }
+        });
+
+        // Cegah nambah skor saat lagi ngetik nama
+        nameLeft.addEventListener('click', (event) => event.stopPropagation());
+        nameRight.addEventListener('click', (event) => event.stopPropagation());
+
+        // Tombol Reset
+        resetBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); 
+            leftScore = 0;
+            rightScore = 0;
+            scoreLeftEl.textContent = leftScore;
+            scoreRightEl.textContent = rightScore;
+        });
+    </script>
+</body>
+</html>
             /* Mencegah teks ter-highlight/terblok saat di-tap cepat di HP */
             user-select: none;
             -webkit-user-select: none;
